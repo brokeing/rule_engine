@@ -1,0 +1,11 @@
+use java.util.HashMap;
+
+if (data.rule_name == "暴力破解") {
+    if (result.count != nil) {
+        result.count = result.count + 1;
+    } else {
+        result.count = 1;
+    }
+}
+return result;
+
