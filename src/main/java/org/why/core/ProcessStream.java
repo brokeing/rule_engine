@@ -4,6 +4,7 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 
 import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -38,8 +39,8 @@ public class ProcessStream {
                 env.addSource(new KafkaSource("why_rule_topic", "g2"));
         BroadcastStream<Map<String, Object>> broadcast = ruleDataStream.broadcast(StateDescriptors.ruleDescriptor);
 
-        SingleOutputStreamOperator<RuleData> process = dataStream.connect(broadcast).process(new ChildProcessFunction())
-                .assignTimestampsAndWatermarks(new SessionAssigner());
+        SingleOutputStreamOperator<RuleData> process = dataStream.connect(broadcast).process(new ChildProcessFunction()).assignTimestampsAndWatermarks(new SessionAssigner());
+
         process.keyBy(RuleData::getKey)
                 .process(new WindowProcessFunction()).print();
 

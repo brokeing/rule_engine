@@ -6,6 +6,7 @@ import org.apache.flink.api.common.eventtime.WatermarkOutput;
 import org.why.config.Rule;
 import org.why.config.RuleData;
 
+
 public class BoundedOutOfRuleWaterMaskGenerator implements WatermarkGenerator<RuleData> {
     private final long maxOutOfOrderness = 3500;
     private Long currentMaxTimestamp;
@@ -23,7 +24,6 @@ public class BoundedOutOfRuleWaterMaskGenerator implements WatermarkGenerator<Ru
             firstWaterMake = System.currentTimeMillis();
         }
         currentMaxTimestamp = eventTime - maxOutOfOrderness;
-        System.out.println("currentMaxTimestamp = " + currentMaxTimestamp);
         output.emitWatermark(new Watermark(currentMaxTimestamp - 1));
     }
 

@@ -46,8 +46,9 @@ public class RuleData{
     }
 
     public String getKey() {
-        return key;
+        return key + rule.getId();
     }
+
 
     public Map<String, Object> getData() {
         return data;

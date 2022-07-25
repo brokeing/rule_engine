@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
+import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 import org.slf4j.Logger;
-import sun.lwawt.macosx.CPrinterDevice;
 
 public class KafkaSource extends RichParallelSourceFunction<Map<String, Object>> {
     private boolean isStop = false;

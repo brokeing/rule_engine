@@ -32,7 +32,6 @@ public class WindowProcessFunction extends KeyedProcessFunction<String, RuleData
     @Override
     public void onTimer(long timestamp, KeyedProcessFunction<String, RuleData, Map<String, Object>>.OnTimerContext ctx, Collector<Map<String, Object>> out) throws Exception {
         super.onTimer(timestamp, ctx, out);
-        System.out.println("触发onTime = ");
         Iterator<Map.Entry<Integer, WindowResult>> iterator = windowState.entries().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Integer, WindowResult> entry = iterator.next();
