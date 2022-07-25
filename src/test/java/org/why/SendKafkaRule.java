@@ -24,7 +24,7 @@ public class SendKafkaRule {
         data.put("filter", "equipment=='chaitin'");
         Map<String, Object> window = new HashMap<>();
         window.put("time_field", "time");
-        window.put("time", 2);
+        window.put("time", 3);
         window.put("function", "use java.util.HashMap; if (data.rule_name == \"暴力破解\") {if (result.count != nil) {result.count = result.count + 1; } else {result.count = 1; } } return result;");
         data.put("key", "src_ip");
         data.put("window", window);

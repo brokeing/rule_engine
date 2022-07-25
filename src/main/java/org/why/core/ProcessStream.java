@@ -1,22 +1,9 @@
 package org.why.core;
 
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-
-import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction;
-import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
-import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
-import org.apache.flink.util.Collector;
 import org.why.config.RuleData;
 import org.why.source.KafkaSource;
 
@@ -39,11 +26,12 @@ public class ProcessStream {
                 env.addSource(new KafkaSource("why_rule_topic", "g2"));
         BroadcastStream<Map<String, Object>> broadcast = ruleDataStream.broadcast(StateDescriptors.ruleDescriptor);
 
-        SingleOutputStreamOperator<RuleData> process = dataStream.connect(broadcast).process(new ChildProcessFunction()).assignTimestampsAndWatermarks(new SessionAssigner());
-
-        process.keyBy(RuleData::getKey)
-                .process(new WindowProcessFunction()).print();
-
+        SingleOutputStreamOperator<Map<String, Object>> process = dataStream.connect(broadcast)
+                .process(new ChildProcessFunction())
+                .assignTimestampsAndWatermarks(new SessionAssigner())
+                .keyBy(RuleData::getKey)
+                .process(new WindowProcessFunction());
+        process.print();
 
         // TODO sink
         Properties properties = new Properties();

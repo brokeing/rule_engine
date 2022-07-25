@@ -1,6 +1,7 @@
 package org.why.core;
 
 import com.googlecode.aviator.Expression;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -16,14 +17,18 @@ import org.why.config.Rule;
 import org.why.config.RuleData;
 import org.why.config.WindowRule;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+@Slf4j
 public class WindowProcessFunction extends KeyedProcessFunction<String, RuleData, Map<String, Object>> {
-    private static final Logger logger = LoggerFactory.getLogger(WindowProcessFunction.class);
 
     private MapState<Integer, WindowResult> windowState;
+    private String format = "yyyy-MM-dd HH:mm:ss";
+    private SimpleDateFormat sdf = new SimpleDateFormat(format);
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
@@ -35,14 +40,22 @@ public class WindowProcessFunction extends KeyedProcessFunction<String, RuleData
         Iterator<Map.Entry<Integer, WindowResult>> iterator = windowState.entries().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Integer, WindowResult> entry = iterator.next();
-            logger.info(entry.getValue().getEndTime().toString());
-            if (entry.getValue().getEndTime() == timestamp) {
+            log.info("触发定时器，规则id: " + entry.getValue().getRuleId() +
+                    " 当前结束时间为: " + sdf.format(new Date(timestamp)));
+            if ((entry.getValue().getEndTime()/1000)*1000 == timestamp) {
                 out.collect(entry.getValue().getResult());
-//                ctx.timerService().deleteEventTimeTimer(timestamp);
-//                ctx.timerService().deleteProcessingTimeTimer(timestamp);
+                ctx.timerService().deleteEventTimeTimer(timestamp);
                 iterator.remove();
             }
         }
+        Iterator<Map.Entry<Integer, WindowResult>> tmpIterator = windowState.entries().iterator();
+        StringBuilder sb = new StringBuilder();
+        while (tmpIterator.hasNext()){
+            Map.Entry<Integer, WindowResult> next = tmpIterator.next();
+            Integer key = next.getKey();
+            sb.append(": ").append(key);
+        }
+        log.info("剩余规则id为: " + sb.toString());
     }
 
     @Override
@@ -58,11 +71,18 @@ public class WindowProcessFunction extends KeyedProcessFunction<String, RuleData
             WindowResult outPutRuleCache = windowState.get(id);
             long triggerTime = (Long) data.get(window.getTimeField()) + window.getTime();
             if (outPutRuleCache == null) {
-//                ctx.timerService().registerProcessingTimeTimer(triggerTime);
-                ctx.timerService().registerEventTimeTimer(triggerTime);
+                ctx.timerService().registerEventTimeTimer((triggerTime/1000)*1000);
                 long currentWatermark = ctx.timerService().currentWatermark();
-                logger.info(currentWatermark + "/" + triggerTime + "/" + System.currentTimeMillis());
-                WindowResult outPutRule = new WindowResult(id, value.getKey(), (Long) data.get(window.getTimeField()), triggerTime,window.getFunction());
+                log.info("当前水位线是:" + sdf.format(new Date(currentWatermark)) +
+                        " 当前触发时间为: " +  sdf.format(new Date(triggerTime)) +
+                        " 当前系统时间为: " + sdf.format(new Date(System.currentTimeMillis())));
+                WindowResult outPutRule = new WindowResult(
+                        id,
+                        value.getKey(),
+                        (Long) data.get(window.getTimeField()),
+                        triggerTime,
+                        window.getFunction(),
+                        rule.getWindow().getTime());
                 Expression addFunction = outPutRule.getAddFunction();
                 Map<String, Object> resultAndData = formatResultAndData(null, data);
                 Map<String, Object> execute = (Map<String, Object>)addFunction.execute(resultAndData);
@@ -70,13 +90,10 @@ public class WindowProcessFunction extends KeyedProcessFunction<String, RuleData
                 windowState.put(id, outPutRule);
             } else {
                 Expression addFunction = outPutRuleCache.getAddFunction();
-                logger.info("当前水位线是:" + ctx.timerService().currentWatermark() + " 当前触发时间为: " + triggerTime + " 当前系统时间为: " + System.currentTimeMillis());
                 Map<String, Object> resultData = outPutRuleCache.getData();
                 Map<String, Object> resultAndData = formatResultAndData(resultData, data);
                 Map<String, Object> execute = (Map<String, Object>)addFunction.execute(resultAndData);
-                outPutRuleCache.setEndTime((Long) data.get(window.getTimeField()));
                 outPutRuleCache.setData(execute);
-                logger.info("当前缓存内容为：" + windowState.get(id));
             }
         }
     }

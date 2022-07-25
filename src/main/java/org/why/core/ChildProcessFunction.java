@@ -1,6 +1,7 @@
 package org.why.core;
 
 import com.googlecode.aviator.Expression;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.configuration.Configuration;
@@ -14,6 +15,7 @@ import org.why.config.RuleData;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class ChildProcessFunction extends BroadcastProcessFunction<Map<String, Object>, Map<String, Object>, RuleData> {
     private static final Logger logger = LoggerFactory.getLogger(ChildProcessFunction.class);
     @Override
@@ -61,7 +63,7 @@ public class ChildProcessFunction extends BroadcastProcessFunction<Map<String, O
             Map<String, Object> window = (Map<String, Object>)rules.getOrDefault("window", null);
             rule.setWindow(window);
             broadcastStateRules.put((Integer)rules.get("id"), rule);
-            System.out.println("rule = " + rule);
+            log.info("加载到规则: " + rule);
         }
         if (type.equals("remove")){
             rules.remove((String) rules.get("id"));

@@ -22,6 +22,15 @@ public class WindowRule{
 //        this.function = instance.compile(function);
     }
 
+    @Override
+    public String toString() {
+        return "WindowRule{" +
+                "time=" + time +
+                ", function='" + function + '\'' +
+                ", timeField='" + timeField + '\'' +
+                '}';
+    }
+
     public void setTimeField(String timeField) {
         this.timeField = timeField;
     }

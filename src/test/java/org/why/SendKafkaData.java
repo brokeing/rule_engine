@@ -18,7 +18,7 @@ public class SendKafkaData {
                 "org.apache.kafka.common.serialization.StringSerializer") ;
         KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps);
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 300; i++) {
             Map<String, Object> data = new HashMap<>();
             data.put("src_ip", "1.1.1.1");
             data.put("dst_ip", "2.2.2.2");

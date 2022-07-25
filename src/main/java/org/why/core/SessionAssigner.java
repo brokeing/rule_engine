@@ -1,13 +1,10 @@
 package org.why.core;
 
 import org.apache.flink.api.common.eventtime.*;
-import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks;
-import org.apache.flink.streaming.api.watermark.Watermark;
+
 import org.why.config.RuleData;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
-import java.util.Map;
 
 public class SessionAssigner implements WatermarkStrategy<RuleData> {
 

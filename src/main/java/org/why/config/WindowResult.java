@@ -14,6 +14,15 @@ public class WindowResult {
     private Long StartTime;
     private Long endTime;
     private Expression addFunction;
+    private Long windowSize;
+
+    public void setWindowSize(Long windowSize) {
+        this.windowSize = windowSize;
+    }
+
+    public Long getWindowSize() {
+        return windowSize;
+    }
 
     public void setAddFunction(Expression addFunction) {
         this.addFunction = addFunction;
@@ -68,9 +77,10 @@ public class WindowResult {
         this.StartTime = startTime;
         this.endTime = endTime;
         this.data = data;
+
     }
 
-    public WindowResult(int ruleId, String key, Long startTime, Long endTime,String addFunction) {
+    public WindowResult(int ruleId, String key, Long startTime, Long endTime, String addFunction, Long windowSize) {
         this.data = new HashMap<>();
         this.ruleId = ruleId;
         this.key = key;
@@ -78,6 +88,7 @@ public class WindowResult {
         AviatorEvaluatorInstance instance = AviatorEvaluator.getInstance();
         this.addFunction = instance.compile(addFunction);
         this.endTime = endTime;
+        this.windowSize = windowSize;
     }
     public Map<String, Object> getResult(){
         Map<String, Object> resultData = new HashMap<>();
