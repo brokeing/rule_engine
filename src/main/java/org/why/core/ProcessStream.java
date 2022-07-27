@@ -1,10 +1,13 @@
 package org.why.core;
 
+import com.alibaba.fastjson.JSON;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.why.config.RuleData;
+import org.why.sink.KafkaSink;
 import org.why.source.KafkaSource;
 
 import java.time.Duration;
@@ -31,14 +34,8 @@ public class ProcessStream {
                 .assignTimestampsAndWatermarks(new SessionAssigner())
                 .keyBy(RuleData::getKey)
                 .process(new WindowProcessFunction());
-        process.print();
 
-        // TODO sink
-        Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", "bigdata:9092");
-        FlinkKafkaProducer<String> producer = new FlinkKafkaProducer<>("why_rule_result_topic",
-                new SimpleStringSchema(),
-                properties);
+        process.map((MapFunction<Map<String, Object>, String>) JSON::toJSONString).addSink(KafkaSink.getKafkaSink("why_rule_result_topic"));
         return this;
     }
     public void start() throws Exception {
